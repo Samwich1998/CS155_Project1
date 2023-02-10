@@ -33,5 +33,5 @@ if __name__ == "__main__":
     # -------------------------- Process the data -------------------------- #
         
     # Compile and save the final features
-    featureExtractionFunctions.compileFeatures(rawTrainingData, 'train')
+    # featureExtractionFunctions.compileFeatures(rawTrainingData, 'train')
     featureExtractionFunctions.compileFeatures(rawUnlabeledData, 'test')

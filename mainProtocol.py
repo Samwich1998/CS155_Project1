@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230210_010706.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230210_010921.csv"
+    trainingFile = "./Data/Input Data/train_features_20230210_014433.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230210_015816.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -60,24 +60,29 @@ if __name__ == "__main__":
     allLabels_Lab = allLabels[allFilenames == "lab"]
     standardizedFeatures_Lab = standardizedFeatures[allFilenames == "lab"]
     # Seperate out the simulated data
-    allLabels_Sim = allLabels[allFilenames == "sim"][0:200]
-    standardizedFeatures_Sim = standardizedFeatures[allFilenames == "sim"][0:200]
+    allLabels_Sim = allLabels[allFilenames == "sim"]
+    standardizedFeatures_Sim = standardizedFeatures[allFilenames == "sim"]
     
     # ---------------------------------------------------------------------- #
     # --------------------------- Split the data --------------------------- #
     
     # Split into testing/training
-    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, random_state=1, stratify=allLabels_Lab)
+    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, random_state=1, stratify=allLabels_Lab, shuffle=True)
+    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.1, random_state=1, stratify=allLabels_Sim, shuffle=True)
     
+    numSimulatedData = 10
     # Add simulated data back to training
-    trainingLabels = np.concatenate((trainingLabels, allLabels_Sim), axis=0)
-    trainingFeatures = np.concatenate((trainingFeatures, standardizedFeatures_Sim), axis=0)
+    trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
+    trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)
+    # Add simulated data back to testing
+    trainingLabels = np.concatenate((trainingLabels, testingLabels_Sim[0:numSimulatedData]), axis=0)
+    trainingFeatures = np.concatenate((trainingFeatures, testingFeatures_Sim[0:numSimulatedData]), axis=0)
     
     # ---------------------------------------------------------------------- #
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
     supportVectorKernel = "linear"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results

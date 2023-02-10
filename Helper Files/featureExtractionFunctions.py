@@ -225,63 +225,18 @@ class featureExtractionProtocols:
         return np.sqrt(np.var(dir_x)+np.var(dir_y))
     
     
-    # def hjorthMobilityX(self, coords):
-    #     # Extract the time-series data
-    #     x = coords[:, 1];
-        
-    #     # Calculate the mobility
-    #     if np.var(x) == 0:
-    #         return 10000
-    #     return np.sqrt(np.var(np.diff(x)) / np.var(x))
-            
-    # def hjorthMobilityY(self, coords):
-    #     # Extract the time-series data
-    #     y = coords[:, 2]
-        
-    #     # Calculate the mobility
-    #     if np.var(y) == 0:
-    #         return 10000
-    #     return np.sqrt(np.var(np.diff(y)) / np.var(y))
-            
-    # def hjorthActivityX(self, coords):
-    #     # Extract the time-series data
-    #     x = coords[:, 1]
-    #     # Calculate the activity
-    #     return np.var(x)
-        
-    # def hjorthActivityY(self, coords):
-    #     # Extract the time-series data
-    #     y = coords[:, 2]
-    #     # Calculate the activity
-    #     return np.var(y)
     
-    # def hjorthComplexityX(self, coords):
-    #     # Extract the time-series data
-    #     x = coords[:, 1]
-    #     # Calculate the complexity
-    #     if np.var(np.diff(x)) == 0:
-    #         return 10000
-    #     return np.sqrt(np.var(np.diff(np.diff(x))) / np.var(np.diff(x)))
-        
-    # def hjorthComplexityY(self, coords):
-    #     # Extract the time-series data
-    #     y = coords[:, 2]
-    #     # Calculate the complexity
-    #     if np.var(np.diff(y)) == 0:
-    #         return 10000
-    #     return np.sqrt(np.var(np.diff(np.diff(y))) / np.var(np.diff(y)))
-
-    # def hjorthCombinedX(self, coords):
-    #     complexity = self.hjorthComplexityX(coords)
-    #     if complexity == 0:
-    #         return 10000
-    #     return self.hjorthMobilityX(coords) * self.hjorthActivityX(coords) / complexity
     
-    # def hjorthCombinedY(self, coords):
-    #     complexity = self.hjorthComplexityY(coords)
-    #     if complexity == 0:
-    #         return 10000
-    #     return self.hjorthMobilityY(coords) * self.hjorthActivityY(coords) / complexity
+    
+    
+    
+    
+    
+    
+    
+    
+    # Unsure if the ones below are good... may be bad
+    ######################################
     
     # def trackSpeedOverAccel(self, coords):
     #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
@@ -291,22 +246,67 @@ class featureExtractionProtocols:
     #         return 10000
     #     return np.mean(velocity) / np.std(acceleration)
     
-    def max_hjorth_parameters(self, coords):
-        window_size = 100
-        t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
-        N = len(t)
-        mobility = np.zeros(N)
-        complexity = np.zeros(N)
-        activity = np.zeros(N)
-        for i in range(N):
-            start = max(0, i - window_size)
-            end = min(N, i + window_size)
-            x_diff = np.diff(x[start:end])
-            y_diff = np.diff(y[start:end])
-            t_diff = np.diff(t[start:end])
-            mobility[i] = np.sqrt(np.mean(x_diff**2 + y_diff**2) / np.var(t_diff))
-            complexity[i] = np.sqrt(np.var(x_diff**2 + y_diff**2) / np.mean(t_diff**2))
-            activity[i] = np.var(x[start:end] + y[start:end])
-        return np.max(mobility) - np.min(mobility)
+    # def hjorth_mobility(self, coords):
+    #     window_size = 60
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    #     N = len(t)
+    #     mobility = np.zeros(N)
+    #     for i in range(N):
+    #         start = max(0, i - window_size)
+    #         end = min(N, i + window_size)
+    #         x_diff = np.diff(x[start:end])
+    #         y_diff = np.diff(y[start:end])
+    #         t_diff = np.diff(t[start:end])
+    #         if np.var(t_diff) != 0:
+    #             mobility[i] = np.sqrt(np.mean(x_diff**2 + y_diff**2) / np.var(t_diff))
+    #     return np.max(mobility) - np.min(mobility)
 
+    # def hjorth_activity(self, coords):
+    #     window_size = 60
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    #     N = len(t)
+    #     activity = np.zeros(N)
+    #     for i in range(N):
+    #         start = max(0, i - window_size)
+    #         end = min(N, i + window_size)
+    #         activity[i] = np.var(x[start:end] + y[start:end])
+    #     return np.max(activity) - np.min(activity)
+
+
+    # def hjorth_complexity(self, coords):
+    #     window_size = 60
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    #     N = len(t)
+    #     complexity = np.zeros(N)
+    #     for i in range(N):
+    #         start = max(0, i - window_size)
+    #         end = min(N, i + window_size)
+    #         x_diff = np.diff(x[start:end])
+    #         y_diff = np.diff(y[start:end])
+    #         t_diff = np.diff(t[start:end])
+    #         if np.mean(t_diff**2) != 0:
+    #             complexity[i] = np.sqrt(np.var(x_diff**2 + y_diff**2) / np.mean(t_diff**2))
+    #     return np.max(complexity) - np.min(complexity)
+    
+    
+    # def max_time_stationary(self, coords):        
+    #     timeSinceLastMovement = 0
+    #     maxTimeSinceLastMovement = 0
+    #     for i in range(1, coords.shape[0]):
+    #         # Previous coordinate location
+    #         prev = coords[i-1,1:]
+    #         # Current coordinate location
+    #         curr = coords[i,1:]
+            
+    #         # Speed in pixels per frame
+    #         step_length = np.linalg.norm(curr - prev)
+            
+    #         if step_length == 0:
+    #             timeSinceLastMovement += 1
+    #             maxTimeSinceLastMovement = max(maxTimeSinceLastMovement, timeSinceLastMovement)
+    #         else:
+    #             timeSinceLastMovement = 0
+
+    #     # Return the sum of the lengths
+    #     return maxTimeSinceLastMovement
     

@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230210_014433.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230210_015816.csv"
+    trainingFile = "./Data/Input Data/train_features_20230210_142227.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230210_150534.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -67,10 +67,10 @@ if __name__ == "__main__":
     # --------------------------- Split the data --------------------------- #
     
     # Split into testing/training
-    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, random_state=1, stratify=allLabels_Lab, shuffle=True)
+    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.4, random_state=1, stratify=allLabels_Lab, shuffle=True)
     trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.1, random_state=1, stratify=allLabels_Sim, shuffle=True)
     
-    numSimulatedData = 10
+    numSimulatedData = 100
     # Add simulated data back to training
     trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
     trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
     supportVectorKernel = "linear"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results
@@ -101,11 +101,51 @@ if __name__ == "__main__":
     f2_Score_Test = generalAnalysis.f2Score(testingLabels, predictedTestLabels)
     f2_Score_All = generalAnalysis.f2Score(allLabels, predictedLabels)
     # Print out results
+    print("")
     print("Test Score:", testScore)
     print("Final Score:", finalScore)
     print("Test F2 Score:", f2_Score_Test)
     print("Final F2 Score:", f2_Score_All)
+    print("")
     
+    
+    
+    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    supportVectorKernel = "poly"
+    listOfStressors = ["Music"]
+    
+    featureNamesListOrder = ["All"]
+    featureNamesList = [featureNames]
+    
+    # For each group of features
+    for currentFeatureNamesInd in range(len(featureNamesList)):
+        featureType = featureNamesListOrder[currentFeatureNamesInd]
+        currentFeatureNames = np.array(featureNamesList[currentFeatureNamesInd])
+        
+        # Define saving parameters
+        saveFolder = saveDataFolder_ML + featureType + " Feature Combinations/"
+        saveExcelName = featureType + " Feature Combinations.xlsx"
+        # Group all the relevant features for this model
+        standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, currentFeatureNames, trainingFeatures)
+        
+        numFeaturesCombineList = np.arange(1, len(featureNames)+1)
+        # Fit model to all feature combinations
+        for numFeaturesCombine in numFeaturesCombineList:
+            print(saveExcelName, numFeaturesCombine)
+            performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(currentFeatureNames), machineLearningClasses = listOfStressors, saveDataFolder = saveFolder, supportVectorKernel = supportVectorKernel)
+            modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, currentFeatureNames, numFeaturesCombine, saveData = False, saveExcelName = saveExcelName, printUpdateAfterTrial = 5000, scaleLabels = False)
+            
+            # # Only use features that have some correlation
+            # if numFeaturesCombine == 1:
+            #     currentFeatureNames = featureNames_Combinations[np.array(modelScores) >= 0]    
+            #     standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, currentFeatureNames, trainingFeatures)
+
+    
+    bestFeatures = ['direction_std', 'duration','e2e_distance','hjorthRatio' ,'hjorthRatio3' ,'mean_step_speed' ,'track_length']
+    standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, bestFeatures, trainingFeatures)
+    testScore = predictionModel.trainModel(trainingFeatures, trainingLabels, testingFeatures, testingLabels)
+    print("\n\nFinal Score:", testScore)
+
     # ---------------------------------------------------------------------- #
     # -------------------------- Save the Results -------------------------- #
     

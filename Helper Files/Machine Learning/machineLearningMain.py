@@ -43,6 +43,7 @@ import SVM as SVM                       # Functions for Support Vector Machine a
 # Import Data Extraction Files (And Their Location)
 sys.path.append('./Helper Files/')  
 import excelProcessing
+import generalAnalysis       # General functions
 
 # Standardize data class
 class standardizeData:
@@ -230,29 +231,22 @@ class predictionModelHead:
         print(featureNamesCombination_String, finalPerformances[0], finalPerformances[-1], removedSubjects[0], removedInds[0])
         # print(finalPerformances[0], finalPerformances[-1], set(removedSubjects[0]), min(removedInds[0]), max(removedInds[0]))
                     
-    def analyzeFeatureCombinations(self, featureData, featureLabels, featureNames, numFeaturesCombine, subjectOrder, saveData = True, 
+    def analyzeFeatureCombinations(self, trainingFeatures, trainingLabels, testingFeatures, testingLabels, featureNames, numFeaturesCombine, saveData = True, 
                                    saveExcelName = "Feature Combination Accuracy.xlsx", printUpdateAfterTrial = 15000, scaleLabels = True):
         # Format the incoming data
         featureNames = np.array(featureNames)
-        featureData = np.array(featureData.copy())
-        featureLabels = np.array(featureLabels.copy())
+        trainingFeatures = np.array(trainingFeatures.copy())
+        testingFeatures = np.array(testingFeatures.copy())
+        testingLabels = np.array(testingLabels.copy())
+        trainingLabels = np.array(trainingLabels.copy())
         # Function variables
         numModelsTrack = 1000   # The number of models to track
         
         # Get All Possible itertools.combinations
-        self.finalPerformances = []; self.finalPerformancesSTDs = []; self.featureNamesCombinations = []
+        self.finalPerformances = []; self.finalPerformancesF2 = []; self.featureNamesCombinations = []
         featureCombinationInds = itertools.combinations(range(0, len(featureNames)), numFeaturesCombine)
-        subjectCombinationInds = list(itertools.combinations(range(0, len(featureLabels)),  len(featureLabels) - int(len(featureLabels)*0)))
         # Find total combinations
         numFeatureCombnatons = math.comb(len(featureNames), numFeaturesCombine)
-                
-        # Standardize the features
-        standardizeClass_Features = standardizeData(featureData)
-        featureData = standardizeClass_Features.standardize(featureData)
-        # Standardize the labels
-        if scaleLabels:
-            standardizeClass_Labels = standardizeData(featureLabels)
-            featureLabels = standardizeClass_Labels.standardize(featureLabels)
         
         t1 = time.time(); combinationRoundInd = -1
         # For Each Combination of Features
@@ -261,7 +255,8 @@ class predictionModelHead:
             combinationRoundInd += 1
             
             # Collect the Signal Data for the Specific Features
-            featureData_culledFeatures = featureData[:, combinationInds]
+            trainingFeatures_culledFeatures = trainingFeatures[:, combinationInds]
+            testingFeatures_culledFeatures = testingFeatures[:, combinationInds]
             # Collect the Specific Feature Names
             featureNamesCombination_String = ''
             for name in featureNames[combinationInds]:
@@ -269,43 +264,32 @@ class predictionModelHead:
                 
             # print(featureNamesCombination_String)
             
+            # Reset the Input Variab;es
             modelPerformances = []
-            for subjectInds in subjectCombinationInds:
-                subjectInds = list(subjectInds)
-                # Reset the Input Variab;es
-                self.resetModel() # Reset the ML Model
-                                
-                # Collect the Signal Data for the Specific Subjects
-                featureData_finalCull = featureData_culledFeatures[subjectInds, :]
-                featureLabels_finalCull = featureLabels[subjectInds]
-                
-                # from sklearn.model_selection import cross_val_score
-                # from sklearn.tree import DecisionTreeRegressor
-                # regressor = DecisionTreeRegressor(random_state=0)
-                # print(np.mean((cross_val_score(regressor, featureData_finalCull, featureLabels_finalCull, cv=10))))
+            self.resetModel() # Reset the ML Model
 
-                # Score the model with this data set.
-                Training_Data, Testing_Data, Training_Labels, Testing_Labels = featureData_finalCull, featureData_culledFeatures, featureLabels_finalCull, featureLabels
-                modelPerformances.append(self.predictionModel.trainModel(Training_Data, Training_Labels, Testing_Data, Testing_Labels))
-                
+            # Score the model with this data set.
+            modelPerformances.append(self.predictionModel.trainModel(trainingFeatures_culledFeatures, trainingLabels, testingFeatures_culledFeatures, testingLabels))
+            
             # if numFeaturesCombine != 1:
-            # self.findWorstSubject(featureData_culledFeatures, featureLabels, subjectOrder, featureNamesCombination_String)
+            # self.findWorstSubject(trainingFeatures_culledFeatures, featureLabels, subjectOrder, featureNamesCombination_String)
                     
             modelPerformance = stats.trim_mean(modelPerformances, 0.3)
             # If the model's performance is one of the top scores
             if len(self.finalPerformances) < numModelsTrack or modelPerformance > self.finalPerformances[-1]:
-                modelSTD = np.std(modelPerformances if len(modelPerformances) > 1 else [0, 0], ddof= 1)
+                predictedTestLabels = np.round(self.predictionModel.predictData(testingFeatures_culledFeatures).ravel())
+                f2_Score_Test = generalAnalysis.f2Score(testingLabels, predictedTestLabels)
                 
                 insertionPoint = bisect.bisect(self.finalPerformances, -modelPerformance, key=lambda x: -x)
                 # Save the model score and standard deviation
                 self.featureNamesCombinations.insert(insertionPoint, featureNamesCombination_String[0:-1])
                 self.finalPerformances.insert(insertionPoint, modelPerformance)
-                self.finalPerformancesSTDs.insert(insertionPoint, modelSTD)
+                self.finalPerformancesF2.insert(insertionPoint, f2_Score_Test)
                 
                 # Only track the best models
                 if len(self.finalPerformances) > numModelsTrack:
                     self.finalPerformances.pop()
-                    self.finalPerformancesSTDs.pop()
+                    self.finalPerformancesF2.pop()
                     self.featureNamesCombinations.pop()
                 
             # Report an Update Every Now and Then
@@ -316,11 +300,11 @@ class predictionModelHead:
                 print(str(np.round(percentComplete, 2)) + "% Complete; Estimated Time Remaining: " + str(np.round((t2-t1)*(100-percentComplete)/(setionPercent*60), 2)) + " Minutes")
                 t1 = time.time()
                     
-        print(self.finalPerformances[0], self.finalPerformancesSTDs[0], self.featureNamesCombinations[0])
+        print(self.finalPerformances[0], self.finalPerformancesF2[0], self.featureNamesCombinations[0])
         # Save the Data in Excel
         if saveData:
-            excelProcessing.processMLData().saveFeatureComparison(np.dstack((self.finalPerformances, self.finalPerformancesSTDs, self.featureNamesCombinations))[0], [], ["Mean Score", "STD", "Feature Combination"], self.saveDataFolder, saveExcelName, sheetName = str(numFeaturesCombine) + " Features in Combination", saveFirstSheet = True)
-        return np.array(self.finalPerformances), np.array(self.finalPerformancesSTDs), np.array(self.featureNamesCombinations)
+            excelProcessing.processMLData().saveFeatureComparison(np.dstack((self.finalPerformances, self.finalPerformancesF2, self.featureNamesCombinations))[0], [], ["Mean Score", "STD", "Feature Combination"], self.saveDataFolder, saveExcelName, sheetName = str(numFeaturesCombine) + " Features in Combination", saveFirstSheet = True)
+        return np.array(self.finalPerformances), np.array(self.finalPerformancesF2), np.array(self.featureNamesCombinations)
     
     def getSpecificFeatures(self, allFeatureNames, getFeatureNames, featureData):
         featureData = np.array(featureData)

@@ -11,6 +11,7 @@ Need to Install on the Anaconda Prompt:
 
 # General modules
 import sys
+import numpy as np
 
 # Import Data Aquisition and Analysis Files
 sys.path.append('./Helper Files/')  # Folder with Data Aquisition Files
@@ -29,9 +30,21 @@ if __name__ == "__main__":
     rawTrainingData = excelProcessing.processFiles().extractData(rawTrainingDataFile)
     rawUnlabeledData = excelProcessing.processFiles().extractData(rawUnlabeledDataFile)
     
+    # Throw away bad values
+    for uid in list(rawTrainingData.keys()):
+        coords = np.array(rawTrainingData[uid]['txy'])
+        t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    
+        if len(coords) < 10:
+            rawTrainingData.pop(uid)
+        elif len(np.unique(np.diff(t))) != 1:
+            rawTrainingData.pop(uid)
+    
+    # sys.exit()
+    
     # ---------------------------------------------------------------------- #
     # -------------------------- Process the data -------------------------- #
         
     # Compile and save the final features
-    # featureExtractionFunctions.compileFeatures(rawTrainingData, 'train')
+    featureExtractionFunctions.compileFeatures(rawTrainingData, 'train')
     featureExtractionFunctions.compileFeatures(rawUnlabeledData, 'test')

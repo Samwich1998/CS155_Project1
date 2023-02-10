@@ -62,6 +62,70 @@ def compileFeatures(track_data, TYPE):
 # ---------------------- Feature Extraction Protocols ---------------------- #
 
 
+def hjorthParameters(coords):
+    window_size = 60
+    t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    N = len(t)
+    mobility = np.zeros(N)
+    complexity = np.zeros(N)
+    activity = np.zeros(N)
+    for i in range(N):
+        start = max(0, i - window_size)
+        end = min(N, i + window_size)
+        x_diff = np.diff(x[start:end])
+        y_diff = np.diff(y[start:end])
+        if len(x_diff) == 0:
+            mobility[i] = np.nan
+            complexity[i] = np.nan
+            activity[i] = np.nan
+        else:
+            mobility[i] = np.sqrt(np.nanmean(x_diff**2 + y_diff**2))
+            complexity[i] = np.sqrt(np.var(np.diff(x_diff**2 + y_diff**2)))
+            activity[i] = np.var(x[start:end] + y[start:end])
+    return activity, complexity, mobility
+
+
+import numpy as np
+from scipy.signal import savgol_filter
+
+def curvature(x, y):
+    num = len(x)/2
+    oddInt = int(num) if int(num) % 2 != 0 else int(num) + 1
+    
+    y = savgol_filter(y, max(3, oddInt), 2, mode='mirror')    
+    y = savgol_filter(y, max(3, oddInt), 2, mode='mirror')    
+    # first, calculate the derivative of the y-coordinate with respect to the x-coordinate
+    dy_dx = np.gradient(y, x)
+    
+    # smooth the first derivative using a Savitzky-Golay filter
+    
+    dy_dx_smooth = savgol_filter(dy_dx, max(3, oddInt), 2, mode='mirror')    
+    
+    # calculate the second derivative of the y-coordinate with respect to the x-coordinate
+    d2y_dx2 = np.gradient(dy_dx_smooth, x)
+    
+    # calculate the curvature
+    curvature = np.abs(d2y_dx2) / (1 + dy_dx_smooth**2)**1.5
+    
+    return curvature
+
+
+def count_near_linear_points(x, y, threshold):
+    points = np.column_stack((x, y))
+    count = 0
+    for i in range(len(points) - 1):
+        for j in range(i + 1, len(points)):
+            x1, y1 = np.array(points[i], dtype=np.float64)
+            x2, y2 = np.array(points[j], dtype=np.float64)
+            if x2 != x1:
+                slope = (y2 - y1) / (x2 - x1)
+            else:
+                slope = 0
+            if abs(slope) <= threshold:
+                count += 1
+    return count
+
+
 class featureExtractionProtocols:
         
     def mean_step_speed(self, coords):
@@ -90,7 +154,7 @@ class featureExtractionProtocols:
             speeds.append(curr_speed)
         
         # Return the average of the speeds
-        return np.mean(speeds)
+        return np.nanmean(speeds)
     
     
     def stddev_step_speed(self, coords):
@@ -226,11 +290,30 @@ class featureExtractionProtocols:
     
     
     
+    def hjorthRatio(self, coords):
+        activity, complexity, mobility = hjorthParameters(coords)
+        
+        ratio = activity*complexity/(mobility +1e-10)
+        
+        mean = np.nanmean(ratio[0:10])
+        return mean if not np.isnan(mean) else 0
     
+    def hjorthRatio2(self, coords):
+        activity, complexity, mobility = hjorthParameters(coords)
+        
+        ratio = activity/(mobility +1e-10)
+        curvatureAC = curvature(coords[:, 0], ratio)
+        
+        mean = np.nanmean(curvatureAC[0:10])
+        return mean if not np.isnan(mean) else 0
     
-    
-    
-    
+    def hjorthRatio3(self, coords):
+        activity, complexity, mobility = hjorthParameters(coords)
+        
+        ratio = activity/(mobility +1e-10)
+        
+        num = count_near_linear_points(coords[:, 0], ratio, 1)
+        return num if not np.isnan(num) else 0
     
     
     
@@ -244,49 +327,11 @@ class featureExtractionProtocols:
     #     acceleration = np.diff(velocity) / np.diff(t[:-1])
     #     if np.std(acceleration) == 0:
     #         return 10000
-    #     return np.mean(velocity) / np.std(acceleration)
+    #     return np.nanmean(velocity) / np.std(acceleration)
     
-    # def hjorth_mobility(self, coords):
-    #     window_size = 60
-    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
-    #     N = len(t)
-    #     mobility = np.zeros(N)
-    #     for i in range(N):
-    #         start = max(0, i - window_size)
-    #         end = min(N, i + window_size)
-    #         x_diff = np.diff(x[start:end])
-    #         y_diff = np.diff(y[start:end])
-    #         t_diff = np.diff(t[start:end])
-    #         if np.var(t_diff) != 0:
-    #             mobility[i] = np.sqrt(np.mean(x_diff**2 + y_diff**2) / np.var(t_diff))
-    #     return np.max(mobility) - np.min(mobility)
-
-    # def hjorth_activity(self, coords):
-    #     window_size = 60
-    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
-    #     N = len(t)
-    #     activity = np.zeros(N)
-    #     for i in range(N):
-    #         start = max(0, i - window_size)
-    #         end = min(N, i + window_size)
-    #         activity[i] = np.var(x[start:end] + y[start:end])
-    #     return np.max(activity) - np.min(activity)
 
 
-    # def hjorth_complexity(self, coords):
-    #     window_size = 60
-    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
-    #     N = len(t)
-    #     complexity = np.zeros(N)
-    #     for i in range(N):
-    #         start = max(0, i - window_size)
-    #         end = min(N, i + window_size)
-    #         x_diff = np.diff(x[start:end])
-    #         y_diff = np.diff(y[start:end])
-    #         t_diff = np.diff(t[start:end])
-    #         if np.mean(t_diff**2) != 0:
-    #             complexity[i] = np.sqrt(np.var(x_diff**2 + y_diff**2) / np.mean(t_diff**2))
-    #     return np.max(complexity) - np.min(complexity)
+    
     
     
     # def max_time_stationary(self, coords):        

@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230210_060608.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230210_060934.csv"
+    trainingFile = "./Data/Input Data/train_features_20230210_010706.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230210_010921.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -60,8 +60,8 @@ if __name__ == "__main__":
     allLabels_Lab = allLabels[allFilenames == "lab"]
     standardizedFeatures_Lab = standardizedFeatures[allFilenames == "lab"]
     # Seperate out the simulated data
-    allLabels_Sim = allLabels[allFilenames == "sim"][0:1000]
-    standardizedFeatures_Sim = standardizedFeatures[allFilenames == "sim"][0:1000]
+    allLabels_Sim = allLabels[allFilenames == "sim"][0:200]
+    standardizedFeatures_Sim = standardizedFeatures[allFilenames == "sim"][0:200]
     
     # ---------------------------------------------------------------------- #
     # --------------------------- Split the data --------------------------- #
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
     supportVectorKernel = "linear"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results

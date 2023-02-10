@@ -300,7 +300,7 @@ class predictionModelHead:
                 print(str(np.round(percentComplete, 2)) + "% Complete; Estimated Time Remaining: " + str(np.round((t2-t1)*(100-percentComplete)/(setionPercent*60), 2)) + " Minutes")
                 t1 = time.time()
                     
-        print(self.finalPerformances[0], self.finalPerformancesF2[0], self.featureNamesCombinations[0])
+        print("\t", self.finalPerformances[0], self.finalPerformancesF2[0], self.featureNamesCombinations[0])
         # Save the Data in Excel
         if saveData:
             excelProcessing.processMLData().saveFeatureComparison(np.dstack((self.finalPerformances, self.finalPerformancesF2, self.featureNamesCombinations))[0], [], ["Mean Score", "STD", "Feature Combination"], self.saveDataFolder, saveExcelName, sheetName = str(numFeaturesCombine) + " Features in Combination", saveFirstSheet = True)

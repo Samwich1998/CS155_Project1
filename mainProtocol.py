@@ -67,8 +67,8 @@ if __name__ == "__main__":
     # --------------------------- Split the data --------------------------- #
     
     # Split into testing/training
-    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.4, random_state=1, stratify=allLabels_Lab, shuffle=True)
-    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.1, random_state=1, stratify=allLabels_Sim, shuffle=True)
+    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, random_state=1, stratify=allLabels_Lab, shuffle=True)
+    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.3, random_state=1, stratify=allLabels_Sim, shuffle=True)
     
     numSimulatedData = 100
     # Add simulated data back to training
@@ -108,18 +108,12 @@ if __name__ == "__main__":
     print("Final F2 Score:", f2_Score_All)
     print("")
     
-    # Define saving parameters
-    saveFolder = saveDataFolder_ML + " Feature Combinations/"
-    saveExcelName = "Feature Combinations.xlsx"
-    # Group all the relevant features for this model
-    standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, featureNames, trainingFeatures)
-    
     numFeaturesCombineList = np.arange(1, len(featureNames)+1)
     # Fit model to all feature combinations
     for numFeaturesCombine in numFeaturesCombineList:
-        print(saveExcelName, numFeaturesCombine)
+        print("Using ", numFeaturesCombine)
         performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)
-        modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, currentFeatureNames, numFeaturesCombine, saveData = False, saveExcelName = saveExcelName, printUpdateAfterTrial = 5000, scaleLabels = False)
+        modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, featureNames, numFeaturesCombine, saveData = False, saveExcelName = "Feature Combinations.xlsx", printUpdateAfterTrial = 50000, scaleLabels = False)
 
 
 

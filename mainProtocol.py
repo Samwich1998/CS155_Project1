@@ -37,8 +37,8 @@ if __name__ == "__main__":
     trainingFile = "./Data/Input Data/train_features_20230210_060608.csv"
     unlabeledFile = "./Data/Input Data/test_features_20230210_060934.csv"
     # Load in the training/testing information
-    allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractData(trainingFile)
-    unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractData(unlabeledFile)
+    allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
+    unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
     # Assert validity of the data
     assert all(featureNames == unlabeledFeatureNames)
     assert len(allFeatures[0]) == len(unlabeledFeatures[0]) == len(featureNames)

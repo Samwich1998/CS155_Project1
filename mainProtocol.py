@@ -108,39 +108,21 @@ if __name__ == "__main__":
     print("Final F2 Score:", f2_Score_All)
     print("")
     
+    # Define saving parameters
+    saveFolder = saveDataFolder_ML + " Feature Combinations/"
+    saveExcelName = "Feature Combinations.xlsx"
+    # Group all the relevant features for this model
+    standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, featureNames, trainingFeatures)
     
-    
-    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
-    supportVectorKernel = "poly"
-    listOfStressors = ["Music"]
-    
-    featureNamesListOrder = ["All"]
-    featureNamesList = [featureNames]
-    
-    # For each group of features
-    for currentFeatureNamesInd in range(len(featureNamesList)):
-        featureType = featureNamesListOrder[currentFeatureNamesInd]
-        currentFeatureNames = np.array(featureNamesList[currentFeatureNamesInd])
-        
-        # Define saving parameters
-        saveFolder = saveDataFolder_ML + featureType + " Feature Combinations/"
-        saveExcelName = featureType + " Feature Combinations.xlsx"
-        # Group all the relevant features for this model
-        standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, currentFeatureNames, trainingFeatures)
-        
-        numFeaturesCombineList = np.arange(1, len(featureNames)+1)
-        # Fit model to all feature combinations
-        for numFeaturesCombine in numFeaturesCombineList:
-            print(saveExcelName, numFeaturesCombine)
-            performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(currentFeatureNames), machineLearningClasses = listOfStressors, saveDataFolder = saveFolder, supportVectorKernel = supportVectorKernel)
-            modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, currentFeatureNames, numFeaturesCombine, saveData = False, saveExcelName = saveExcelName, printUpdateAfterTrial = 5000, scaleLabels = False)
-            
-            # # Only use features that have some correlation
-            # if numFeaturesCombine == 1:
-            #     currentFeatureNames = featureNames_Combinations[np.array(modelScores) >= 0]    
-            #     standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, currentFeatureNames, trainingFeatures)
+    numFeaturesCombineList = np.arange(1, len(featureNames)+1)
+    # Fit model to all feature combinations
+    for numFeaturesCombine in numFeaturesCombineList:
+        print(saveExcelName, numFeaturesCombine)
+        performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)
+        modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, currentFeatureNames, numFeaturesCombine, saveData = False, saveExcelName = saveExcelName, printUpdateAfterTrial = 5000, scaleLabels = False)
 
-    
+
+
     bestFeatures = ['direction_std', 'duration','e2e_distance','hjorthRatio' ,'hjorthRatio3' ,'mean_step_speed' ,'track_length']
     standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, bestFeatures, trainingFeatures)
     testScore = predictionModel.trainModel(trainingFeatures, trainingLabels, testingFeatures, testingLabels)

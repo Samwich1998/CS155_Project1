@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/train_features_20230210_060608.csv"
-    unlabeledFile = "./Data/test_features_20230210_060934.csv"
+    trainingFile = "./Data/Input Data/train_features_20230210_060608.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230210_060934.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractData(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractData(unlabeledFile)
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     # Pick the Machine Learning Module to Use
     modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
-    supportVectorKernel = "linear"
+    supportVectorKernel = "linear"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results
     saveDataFolder_ML = "./Data/Machine Learning Analysis/" + modelType + "/"
@@ -106,13 +106,13 @@ if __name__ == "__main__":
     
     import csv     
     # name of csv file
-    filename = "data/submission_RF_9Feb.csv"
+    outputFile = "./Data/Submission Data/submission_RF_9Feb.csv"
     
     standardizedUnlabeledFeatures = standardizeX_Class.standardize(unlabeledFeatures)
     predictedLabels = np.round(predictionModel.predictData(standardizedUnlabeledFeatures).ravel())
 
     # writing to csv file
-    with open(filename, 'w') as csvfile:
+    with open(outputFile, 'w') as csvfile:
         # creating a csv writer object
         csvwriter = csv.writer(csvfile)
          

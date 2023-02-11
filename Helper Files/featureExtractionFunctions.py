@@ -85,14 +85,12 @@ def hjorthParameters(coords):
     return activity, complexity, mobility
 
 
-import numpy as np
 from scipy.signal import savgol_filter
 
 def curvature(x, y):
     num = len(x)/2
     oddInt = int(num) if int(num) % 2 != 0 else int(num) + 1
     
-    y = savgol_filter(y, max(3, oddInt), 2, mode='mirror')    
     y = savgol_filter(y, max(3, oddInt), 2, mode='mirror')    
     # first, calculate the derivative of the y-coordinate with respect to the x-coordinate
     dy_dx = np.gradient(y, x)
@@ -294,18 +292,24 @@ class featureExtractionProtocols:
         activity, complexity, mobility = hjorthParameters(coords)
         
         ratio = activity*complexity/(mobility +1e-10)
+        ratio = ratio[0:20]
         
-        mean = np.nanmean(ratio[0:10])
-        return mean if not np.isnan(mean) else 0
+        if not all(np.isnan(ratio)):
+            return np.nanmean(ratio)
+        else:
+            return 0
     
     def hjorthRatio2(self, coords):
         activity, complexity, mobility = hjorthParameters(coords)
         
         ratio = activity/(mobility +1e-10)
-        curvatureAC = curvature(coords[:, 0], ratio)
+        curvatureAC = curvature(coords[:, 0], ratio)[0:20]
         
-        mean = np.nanmean(curvatureAC[0:10])
-        return mean if not np.isnan(mean) else 0
+        if not all(np.isnan(curvatureAC)):
+            return np.nanmean(curvatureAC)
+        else:
+            return 0
+    
     
     def hjorthRatio3(self, coords):
         activity, complexity, mobility = hjorthParameters(coords)

@@ -30,20 +30,19 @@ if __name__ == "__main__":
     rawTrainingData = excelProcessing.processFiles().extractData(rawTrainingDataFile)
     rawUnlabeledData = excelProcessing.processFiles().extractData(rawUnlabeledDataFile)
     
-    numSim = 1000;
+    numSim = 200;
     # Throw away bad values
     for uid in list(rawTrainingData.keys()):
         coords = np.array(rawTrainingData[uid]['txy'])
         t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
     
-        # if len(coords) < 10:
-        #     rawTrainingData.pop(uid)
-        # elif len(np.unique(np.diff(t))) != 1:
-        #     rawTrainingData.pop(uid)
+        if len(coords) < 5:
+            rawTrainingData.pop(uid)
+        elif len(np.unique(np.diff(t))) != 1:
+            rawTrainingData.pop(uid)
         
         if 'sim' in uid:
             numSim -= 1
-        
         if numSim == 0:
             rawTrainingData.pop(uid)
         

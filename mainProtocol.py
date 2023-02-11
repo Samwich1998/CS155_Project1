@@ -82,8 +82,8 @@ if __name__ == "__main__":
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
-    supportVectorKernel = "linear"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
+    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    supportVectorKernel = "poly"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results
     saveDataFolder_ML = "./Data/Machine Learning Analysis/" + modelType + "/"
@@ -114,12 +114,41 @@ if __name__ == "__main__":
         print("Using ", numFeaturesCombine)
         performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)
         modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, featureNames, numFeaturesCombine, saveData = False, saveExcelName = "Feature Combinations.xlsx", printUpdateAfterTrial = 50000, scaleLabels = False)
+    
+    
+    
+    
+    
+    
+    
+    bestFeatures = [
+        ('RF', 'direction_std duration e2e_distance hjorthRatio hjorthRatio2 hjorthRatio3 stddev_step_speed track_length'),
+        ('ADA', 'duration e2e_distance hjorthRatio hjorthRatio3 mean_step_speed stddev_step_speed track_length'),
+        ('KNN', 'direction_std e2e_distance hjorthRatio hjorthRatio2 hjorthRatio3 stddev_step_speed'),
+    ]
+    
+    
+    
+    standardizedUnlabeledFeatures = standardizeX_Class.standardize(unlabeledFeatures)
 
-
-
-    bestFeatures = ['direction_std', 'duration','e2e_distance','hjorthRatio' ,'hjorthRatio3' ,'mean_step_speed' ,'track_length']
-    standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, bestFeatures, trainingFeatures)
-    testScore = predictionModel.trainModel(trainingFeatures, trainingLabels, testingFeatures, testingLabels)
+    import scipy
+    predictedLabels_All = []
+    for featureInfo in bestFeatures:
+        modelType, modelFeatures = featureInfo
+        modelFeatures = modelFeatures.split(" ")
+        
+        # Get the Machine Learning Module
+        performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)
+        predictionModel = performMachineLearning.predictionModel
+        
+        standardizedFeatures_Cull = performMachineLearning.getSpecificFeatures(featureNames, modelFeatures, trainingFeatures)
+        testScore = predictionModel.trainModel(trainingFeatures, trainingLabels, testingFeatures, testingLabels)
+        
+        predictedLabels_All.append(np.round(predictionModel.predictData(standardizedUnlabeledFeatures).ravel()))
+    predictedLabels_All = np.array(predictedLabels_All)
+    
+    predictedLabels = scipy.stats.mode(predictedLabels_All)[0][0]
+        
     print("\n\nFinal Score:", testScore)
 
     # ---------------------------------------------------------------------- #
@@ -129,8 +158,6 @@ if __name__ == "__main__":
     # name of csv file
     outputFile = "./Data/Submission Data/submission_RF_9Feb.csv"
     
-    standardizedUnlabeledFeatures = standardizeX_Class.standardize(unlabeledFeatures)
-    predictedLabels = np.round(predictionModel.predictData(standardizedUnlabeledFeatures).ravel())
 
     # writing to csv file
     with open(outputFile, 'w') as csvfile:

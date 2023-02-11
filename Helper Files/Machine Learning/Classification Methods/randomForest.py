@@ -53,7 +53,7 @@ class randomForest:
         """
         criteria: “gini” for the Gini impurity and “entropy” for the information gain.
         """
-        self.model = RandomForestClassifier(n_estimators=10, criterion='gini', max_depth=None, min_samples_split=2,
+        self.model = RandomForestClassifier(n_estimators=100, criterion='gini', max_depth=None, min_samples_split=2,
                     min_samples_leaf=5, min_weight_fraction_leaf=0.0, max_features='sqrt',max_leaf_nodes=None,
                     min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None,
                     verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)

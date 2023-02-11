@@ -36,6 +36,7 @@ import neuralNetwork as NeuralNet       # Functions for Neural Network Algorithm
 import logisticRegression as LR         # Functions for Linear Regression Algorithm
 import ridgeRegression as Ridge         # Functions for Ridge Regression Algorithm
 import elasticNet as elasticNet         # Functions for Elastic Net Algorithm
+import adaBoost                         # Functions for the Adaboost Algorithm
 import randomForest                     # Functions for the Random Forest Algorithm
 import KNN as KNN                       # Functions for K-Nearest Neighbors' Algorithm
 import SVM as SVM                       # Functions for Support Vector Machine algorithm
@@ -69,7 +70,7 @@ class predictionModelHead:
         self.testSize = 0.4
         self.supportVectorKernel = supportVectorKernel
         
-        self.possibleModels = ['NN', 'RF', 'LR', 'KNN', 'SVM', 'RG', 'EN', "SVR"]
+        self.possibleModels = ['NN', 'RF', 'LR', 'KNN', 'SVM', 'RG', 'EN', "SVR", "ADA"]
         if modelType not in self.possibleModels:
             exit("The Model Type is Not Found")
         
@@ -91,6 +92,8 @@ class predictionModelHead:
             predictionModel = NeuralNet.Neural_Network(modelPath = modelPath, numFeatures = numFeatures)
         elif modelType == "RF":
             predictionModel = randomForest.randomForest(modelPath = modelPath)
+        elif modelType == "ADA":
+            predictionModel = adaBoost.adaBoost(modelPath = modelPath)
         elif modelType == "LR":
             predictionModel = LR.logisticRegression(modelPath = modelPath)
         elif modelType == "RG":

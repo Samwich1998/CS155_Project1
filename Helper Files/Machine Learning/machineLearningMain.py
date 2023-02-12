@@ -31,6 +31,7 @@ import adaBoost                         # Functions for the Adaboost Algorithm
 import randomForest                     # Functions for the Random Forest Algorithm
 import KNN as KNN                       # Functions for K-Nearest Neighbors' Algorithm
 import SVM as SVM                       # Functions for Support Vector Machine algorithm
+import xgBoost
 
 # Import Data Extraction Files (And Their Location)
 sys.path.append('./Helper Files/')  
@@ -61,7 +62,7 @@ class predictionModelHead:
         self.testSize = 0.4
         self.supportVectorKernel = supportVectorKernel
         
-        self.possibleModels = ['NN', 'RF', 'LR', 'KNN', 'SVM', 'RG', 'EN', "SVR", "ADA"]
+        self.possibleModels = ['NN', 'RF', 'LR', 'KNN', 'SVM', 'RG', 'EN', "SVR", "ADA", "XGB"]
         if modelType not in self.possibleModels:
             exit("The Model Type is Not Found")
         
@@ -84,6 +85,8 @@ class predictionModelHead:
         elif modelType == "RF":
             predictionModel = randomForest.randomForest(modelPath = modelPath)
         elif modelType == "ADA":
+            predictionModel = adaBoost.adaBoost(modelPath = modelPath)
+        elif modelType == "XGB":
             predictionModel = adaBoost.adaBoost(modelPath = modelPath)
         elif modelType == "LR":
             predictionModel = LR.logisticRegression(modelPath = modelPath)

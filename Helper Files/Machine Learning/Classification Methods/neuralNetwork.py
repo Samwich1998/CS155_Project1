@@ -148,6 +148,21 @@ class mse_Margin(tf.keras.losses.Loss):
         squared_difference_Threshold = self.relu(squared_difference)
         mse = tf.reduce_mean(squared_difference_Threshold, axis=-1)
         return mse
+    
+    
+def binary_f2_score(y_true, y_pred):
+    y_true = tf.cast(y_true, "int32")
+    y_pred = tf.cast(tf.round(y_pred), "int32")
+    y_correct = y_true * y_pred
+    sum_true = tf.reduce_sum(y_true, axis=1)
+    sum_pred = tf.reduce_sum(y_pred, axis=1)
+    sum_correct = tf.reduce_sum(y_correct, axis=1)
+    precision = sum_correct / sum_pred
+    recall = sum_correct / sum_true
+    f_score = 5 * precision * recall / (4 * precision + recall)
+    f_score = tf.where(tf.math.is_nan(f_score), tf.zeros_like(f_score), f_score)
+    return tf.reduce_mean(f_score)
+
 # --------------------------------------------------------------------------- #
 # --------------------------------------------------------------------------- #
     
@@ -208,25 +223,24 @@ class Neural_Network:
         # Model Layers
         #model.add(tf.keras.layers.Reshape((1,4)))  # Reshapes the input layer. Needed for ND -> 1D inputs
         #model.add(tf.keras.layers.LSTM(256))
-        self.model.add(tf.keras.layers.Dense(units = numFeatures, activation='relu'))
         self.model.add(tf.keras.layers.Dense(units = 4*numFeatures, activation='relu'))
         self.model.add(tf.keras.layers.Dense(units = 2*numFeatures, activation='relu'))
-        self.model.add(tf.keras.layers.Dense(units = 4, activation='relu'))
+        self.model.add(tf.keras.layers.Dense(units = numFeatures, activation='relu'))
         self.model.add(tf.keras.layers.Dense(units = 1, activation='sigmoid'))
         
         # Define the Loss Function and Optimizer for the Model
             # Compile: Initializing the optimizer and the loss in the Neural Network
             # Optimizer: The method used to change the Weights in the Network
             # Loss: The Function used to estimate how bad our weights are
-        if opt == None: opt = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=False)
+        if opt == None: opt = tf.keras.optimizers.Adam(learning_rate=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07, amsgrad=True)
         if loss == None: loss = ['binary_crossentropy']
-        if metric == None: metric = ['accuracy']
+        if metric == None: metric = [binary_f2_score, 'accuracy']
         
         # Compile the Model
-        self.model.compile(optimizer = opt, loss = loss, metrics = list([metric]))
+        self.model.compile(optimizer = opt, loss = loss, metrics = list([metric]), weighted_metrics=[])
         # print("NN Model Created")
     
-    def trainModel(self, Training_Data, Training_Labels, Testing_Data, Testing_Labels, epochs = 150, seeTrainingSteps = False):
+    def trainModel(self, Training_Data, Training_Labels, Testing_Data, Testing_Labels, epochs = 150, seeTrainingSteps = True):
         self.createModel(len(Training_Data[0]), opt=None, loss=None, metric=None)
         
         # For mini-batch gradient decent we want it small (not full batch) to better generalize data
@@ -237,12 +251,14 @@ class Neural_Network:
             # With uninitialized weights, bring data through network
             # Calculate the loss based on the data
             # Perform optimizer to update the weights
-        self.history = self.model.fit(Training_Data, Training_Labels, validation_split=0.15, epochs=int(epochs), shuffle=True, batch_size = int(mini_batch_gd), verbose = seeTrainingSteps)
+        self.history = self.model.fit(Training_Data, Training_Labels, sample_weight=Training_Labels*2, validation_split=0.15, epochs=int(epochs), shuffle=True, batch_size = int(mini_batch_gd), verbose = seeTrainingSteps)
         # Score the Model
-        test_loss, test_acc = self.model.evaluate(Testing_Data, Testing_Labels, batch_size=mini_batch_gd, verbose = seeTrainingSteps)
+        test_loss, F2, accuracy = self.model.evaluate(Testing_Data, Testing_Labels, batch_size=mini_batch_gd, verbose = seeTrainingSteps)
+        print(test_loss)
         print('Test loss:', test_loss)
-        print('Test accuracy:', test_acc)
-        return test_acc
+        print('Test F2:', F2)
+        print('Test accuracy:', accuracy)
+        return F2
 
     
     

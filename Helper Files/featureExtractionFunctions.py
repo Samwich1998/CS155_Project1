@@ -15,6 +15,8 @@ import inspect
 from datetime  import datetime
 from scipy.stats import kurtosis, skew
 
+import scipy
+import sklearn
 import csv
 import numpy as np
 
@@ -454,6 +456,21 @@ class featureExtractionProtocols:
         
         # Return the standard deviation of the speeds
         return kurtosis(dir_x)+kurtosis(dir_y)
+    
+    def linearity(self, coords):
+        try:
+            _, _, r, _, _ = scipy.stats.linregress(coords[:,1], coords[:,2])
+            return r**2
+        except:
+            return 0
+        
+    def quadraticity(self, coords):
+        try:
+            model = np.poly1d(np.polyfit(coords[:, 1], coords[:, 2], 2))
+            r2 = sklearn.metrics.r2_score(coords[:, 1], model(coords[:, 2]))
+            return r2
+        except:
+            return 0
         
         
     

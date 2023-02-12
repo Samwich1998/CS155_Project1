@@ -464,14 +464,79 @@ class featureExtractionProtocols:
         except:
             return 0
         
-    def quadraticity(self, coords):
-        try:
-            model = np.poly1d(np.polyfit(coords[:, 1], coords[:, 2], 2))
-            r2 = sklearn.metrics.r2_score(coords[:, 1], model(coords[:, 2]))
-            return r2
-        except:
-            return 0
+    # def quadraticity(self, coords):
+    #     try:
+    #         model = np.poly1d(np.polyfit(coords[:, 1], coords[:, 2], 2))
+    #         r2 = sklearn.metrics.r2_score(coords[:, 1], model(coords[:, 2]))
+    #         return r2
+    #     except:
+    #         return 0
+    
+    def meanSquareDisplacement(self, coords):
+        """Calculate mean square displacement from data"""
+        x, y = coords[:, 1], coords[:, 2]
         
+        msd = np.mean((x - x[0])**2 + (y - y[0])**2)
+        return msd
+    
+    def brownianMotion(self, coords):
+        """Calculate mean square displacement from data"""
+        t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+        
+        msd = np.mean((x - x[0])**2 + (y - y[0])**2)
+        return msd/(t[-1] - t[0])
+    
+    def autocorrelation(self, coords):
+        """Calculate autocorrelation of displacement with lag"""
+        x, y = coords[:, 1], coords[:, 2]
+        dx, dy = x-x[0], y-y[0]
+        dL = np.sqrt(dx**2 + dy**2)  
+
+        if np.isnan(dL).any() or np.isinf(dL).any():
+            return -1
+        if len(np.unique(dL)) != len(dL):
+            return 0                       
+             
+        disp_with_lag = np.roll(dL, 1)
+        autocorr = np.corrcoef(dL, disp_with_lag)[0, 1]
+        
+        return autocorr
+
+    def autocorrelationX(self, coords):
+        """Calculate autocorrelation of displacement with lag"""
+        x, y = coords[:, 1], coords[:, 2]
+        dx, dy = x-x[0], y-y[0]
+        dL = dx             
+        
+        if np.isnan(dL).any() or np.isinf(dL).any():
+            return -1
+        if len(np.unique(dL)) != len(dL):
+            return 0
+             
+        disp_with_lag = np.roll(dL, 1)
+        autocorr = np.corrcoef(dL, disp_with_lag)[0, 1]
+        
+        return autocorr
+    
+    def autocorrelationY(self, coords):
+        """Calculate autocorrelation of displacement with lag"""
+        x, y = coords[:, 1], coords[:, 2]
+        dx, dy = x-x[0], y-y[0]
+        dL = dy     
+
+        if np.isnan(dL).any() or np.isinf(dL).any():
+            return -1
+        if len(np.unique(dL)) != len(dL):
+            return 0        
+             
+        disp_with_lag = np.roll(dL, 1)
+        autocorr = np.corrcoef(dL, disp_with_lag)[0, 1]
+        
+        return autocorr
+        
+        
+
+    
         
     
     # def hjorthRatio(self, coords):

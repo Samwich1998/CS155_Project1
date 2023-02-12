@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230211_235210.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230211_235347.csv"
+    trainingFile = "./Data/Input Data/train_features_20230212_123802.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230212_124044.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -67,8 +67,8 @@ if __name__ == "__main__":
     # --------------------------- Split the data --------------------------- #
     
     # Split into testing/training
-    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.1, stratify=allLabels_Lab, shuffle=True)
-    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.1, stratify=allLabels_Sim, shuffle=True)
+    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.2, stratify=allLabels_Lab, shuffle=True)
+    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.2, stratify=allLabels_Sim, shuffle=True)
     
     numSimulatedData = 200
     # Add simulated data back to training
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR, XGB
+    modelType = "ADA"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR, XGB
     supportVectorKernel = "poly"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     
     trainingFeatures, trainingLabels = standardizedFeatures_Lab, allLabels_Lab
-    numSimulatedData = 10
+    numSimulatedData = 200
     # Add simulated data back to training
     trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
     trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)
@@ -134,10 +134,10 @@ if __name__ == "__main__":
     
     
     bestFeatures = [
-        ('RF', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
-        ('ADA', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
-        ('XGB', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
-        ('KNN', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
+        ('RF', ' '.join(featureNames)),
+        ('ADA', ' '.join(featureNames)),
+        ('XGB', ' '.join(featureNames)),
+        # ('KNN', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
     ]
     
     

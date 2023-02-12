@@ -38,13 +38,16 @@ if __name__ == "__main__":
     
         if len(coords) < 5:
             rawTrainingData.pop(uid)
+            continue
         elif len(np.unique(np.diff(t))) != 1:
             rawTrainingData.pop(uid)
+            continue
         
         if 'sim' in uid:
             numSim -= 1
-        if numSim == 0:
+        if numSim <= 0:
             rawTrainingData.pop(uid)
+            continue
         
         
     

@@ -11,6 +11,7 @@ Need to Install on the Anaconda Prompt:
 
 # General modules
 import os
+import inspect
 from datetime  import datetime
 
 import csv
@@ -21,22 +22,20 @@ import numpy as np
 
 def compileFeatures(track_data, TYPE):
     print("\nCompile Features for " + TYPE.capitalize() + "ing Data")
+    
     # Specify output filename
     TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
     OUTPUT_FILENAME = f"./Data/Input Data/{TYPE}_features_{TIMESTAMP}.csv"
     
     # Compile feature extraction methods
     extractionClass = featureExtractionProtocols()
-    FEATURE_LIST = [method for method in dir(extractionClass) if callable(getattr(extractionClass, method)) and not method.startswith("__")]
-    
-    # Generate the feature csv
+    FEATURE_LIST = [getattr(extractionClass, name) for name in dir(extractionClass) if callable(getattr(extractionClass, name)) and not name.startswith("_")]
+
     header = ['uid', 'label']
     for featfunc in FEATURE_LIST:
-        featfunc = getattr(extractionClass, featfunc)
-        header.append(featfunc.__name__)
+       header.append(featfunc.__name__)
     
     features = []
-    
     track_uids = track_data.keys()
     for uid in track_uids:
         curr_row = {
@@ -45,7 +44,6 @@ def compileFeatures(track_data, TYPE):
         }
         
         for featfunc in FEATURE_LIST:
-            featfunc = getattr(extractionClass, featfunc)
             curr_row[featfunc.__name__] = featfunc(np.array(track_data[uid]['txy']))
         
         features.append(curr_row)
@@ -56,7 +54,8 @@ def compileFeatures(track_data, TYPE):
         for r in features:
             writer.writerow(r)
     
-    print("\tWritten to:", OUTPUT_FILENAME)
+    print("Written to:", OUTPUT_FILENAME)
+
 
 # -------------------------------------------------------------------------- #
 # ---------------------- Feature Extraction Protocols ---------------------- #

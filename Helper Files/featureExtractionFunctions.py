@@ -13,6 +13,7 @@ Need to Install on the Anaconda Prompt:
 import os
 import inspect
 from datetime  import datetime
+from scipy.stats import kurtosis, skew
 
 import csv
 import numpy as np
@@ -277,46 +278,215 @@ class featureExtractionProtocols:
             prev = coords[i-1, 1:]
             # Current coordinate location
             curr = coords[i, 1:]
+            timeDiff = coords[i,0]-coords[i-1,0]
             
             # Speed in pixels per frame
-            dir_x.append(curr[0]-prev[0])
-            dir_y.append(curr[1]-prev[1])
+            dir_x.append(curr[0]-prev[0])/timeDiff
+            dir_y.append(curr[1]-prev[1])/timeDiff
         
         # Return the standard deviation of the speeds
         return np.sqrt(np.var(dir_x)+np.var(dir_y))
     
     
     
-    def hjorthRatio(self, coords):
-        activity, complexity, mobility = hjorthParameters(coords)
+    def direction_std(self, coords):
+        """Name of the Feature
         
-        ratio = activity*complexity/(mobility +1e-10)
-        ratio = ratio[0:20]
+        A short description of the feature goes here. Equations can be useful.
         
-        if not all(np.isnan(ratio)):
-            return np.nanmean(ratio)
-        else:
-            return 0
+        Parameters
+        ----------
+        coords: array
+            A numpy array containing the (t, x, y) coordinates of the track.
+        
+        Returns
+        -------
+        float
+            The feature value for the entire array.
+        
+        """
+        dir_x = []
+        dir_y = []
     
-    def hjorthRatio2(self, coords):
-        activity, complexity, mobility = hjorthParameters(coords)
+        for i in range(1, coords.shape[0]):
+            # Previous coordinate location
+            prev = coords[i-1, 1:]
+            # Current coordinate location
+            curr = coords[i, 1:]
+            time_diff = coords[i,0] - coords[i-1,0]
+    
+            # Speed in pixels per frame
+            dir_x.append((curr[0]-prev[0])/time_diff)
+            dir_y.append((curr[1]-prev[1])/time_diff)
         
-        ratio = activity/(mobility +1e-10)
-        curvatureAC = curvature(coords[:, 0], ratio)[0:20]
+        # Return the standard deviation of the speeds
+        return np.sqrt(np.var(dir_x)+np.var(dir_y))
+    
+    def direction_x(self, coords):
+        """Name of the Feature
         
-        if not all(np.isnan(curvatureAC)):
-            return np.nanmean(curvatureAC)
-        else:
-            return 0
+        A short description of the feature goes here. Equations can be useful.
+        
+        Parameters
+        ----------
+        coords: array
+            A numpy array containing the (t, x, y) coordinates of the track.
+        
+        Returns
+        -------
+        float
+            The feature value for the entire array.
+        
+        """
+        dir_x = []
+        dir_y = []
+    
+        for i in range(1, coords.shape[0]):
+            # Previous coordinate location
+            prev = coords[i-1, 1:]
+            # Current coordinate location
+            curr = coords[i, 1:]
+            time_diff = coords[i,0] - coords[i-1,0]
+           
+            # Speed in pixels per frame
+            dir_x.append((curr[0]-prev[0])/time_diff)
+            dir_y.append((curr[1]-prev[1])/time_diff)
+        
+        # Return the standard deviation of the speeds
+        return np.mean(dir_x)
+    
+    def direction_y(self, coords):
+        """Name of the Feature
+        
+        A short description of the feature goes here. Equations can be useful.
+        
+        Parameters
+        ----------
+        coords: array
+            A numpy array containing the (t, x, y) coordinates of the track.
+        
+        Returns
+        -------
+        float
+            The feature value for the entire array.
+        
+        """
+        dir_x = []
+        dir_y = []
+    
+        for i in range(1, coords.shape[0]):
+            # Previous coordinate location
+            prev = coords[i-1, 1:]
+            # Current coordinate location
+            curr = coords[i, 1:]
+            time_diff = coords[i,0] - coords[i-1,0]
+    
+            # Speed in pixels per frame
+            dir_x.append((curr[0]-prev[0])/time_diff)
+            dir_y.append((curr[1]-prev[1])/time_diff)
+        
+        # Return the standard deviation of the speeds
+        return np.mean(dir_y)
     
     
-    def hjorthRatio3(self, coords):
-        activity, complexity, mobility = hjorthParameters(coords)
+    def direction_skew(self, coords):
+        """Name of the Feature
         
-        ratio = activity/(mobility +1e-10)
+        A short description of the feature goes here. Equations can be useful.
         
-        num = count_near_linear_points(coords[:, 0], ratio, 1)
-        return num if not np.isnan(num) else 0
+        Parameters
+        ----------
+        coords: array
+            A numpy array containing the (t, x, y) coordinates of the track.
+        
+        Returns
+        -------
+        float
+            The feature value for the entire array.
+        
+        """
+        dir_x = []
+        dir_y = []
+    
+        for i in range(1, coords.shape[0]):
+            # Previous coordinate location
+            prev = coords[i-1, 1:]
+            # Current coordinate location
+            curr = coords[i, 1:]
+            time_diff = coords[i,0] - coords[i-1,0]
+            
+            # Speed in pixels per frame
+            dir_x.append((curr[0]-prev[0])/time_diff)
+            dir_y.append((curr[1]-prev[1])/time_diff)
+        
+        # Return the standard deviation of the speeds
+        return skew(dir_x)+skew(dir_y)
+    
+    def direction_kurtosis(self, coords):
+        """Name of the Feature
+        
+        A short description of the feature goes here. Equations can be useful.
+        
+        Parameters
+        ----------
+        coords: array
+            A numpy array containing the (t, x, y) coordinates of the track.
+        
+        Returns
+        -------
+        float
+            The feature value for the entire array.
+        
+        """
+        dir_x = []
+        dir_y = []
+    
+        for i in range(1, coords.shape[0]):
+            # Previous coordinate location
+            prev = coords[i-1, 1:]
+            # Current coordinate location
+            curr = coords[i, 1:]
+            time_diff = coords[i,0] - coords[i-1,0]
+            
+            # Speed in pixels per frame
+            dir_x.append((curr[0]-prev[0])/time_diff)
+            dir_y.append((curr[1]-prev[1])/time_diff)
+        
+        # Return the standard deviation of the speeds
+        return kurtosis(dir_x)+kurtosis(dir_y)
+        
+        
+    
+    # def hjorthRatio(self, coords):
+    #     activity, complexity, mobility = hjorthParameters(coords)
+        
+    #     ratio = activity*complexity/(mobility +1e-10)
+    #     ratio = ratio[0:20]
+        
+    #     if not all(np.isnan(ratio)):
+    #         return np.nanmean(ratio)
+    #     else:
+    #         return 0
+    
+    # def hjorthRatio2(self, coords):
+    #     activity, complexity, mobility = hjorthParameters(coords)
+        
+    #     ratio = activity/(mobility +1e-10)
+    #     curvatureAC = curvature(coords[:, 0], ratio)[0:20]
+        
+    #     if not all(np.isnan(curvatureAC)):
+    #         return np.nanmean(curvatureAC)
+    #     else:
+    #         return 0
+    
+    
+    # def hjorthRatio3(self, coords):
+    #     activity, complexity, mobility = hjorthParameters(coords)
+        
+    #     ratio = activity/(mobility +1e-10)
+        
+    #     num = count_near_linear_points(coords[:, 0], ratio, 1)
+    #     return num if not np.isnan(num) else 0
     
     
     

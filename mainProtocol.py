@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230210_142227.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230210_150534.csv"
+    trainingFile = "./Data/Input Data/train_features_20230211_215444.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230211_215613.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -67,22 +67,22 @@ if __name__ == "__main__":
     # --------------------------- Split the data --------------------------- #
     
     # Split into testing/training
-    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, random_state=1, stratify=allLabels_Lab, shuffle=True)
-    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.3, random_state=1, stratify=allLabels_Sim, shuffle=True)
+    trainingFeatures, testingFeatures, trainingLabels, testingLabels = sklearn.model_selection.train_test_split(standardizedFeatures_Lab, allLabels_Lab, test_size=0.3, stratify=allLabels_Lab, shuffle=True)
+    trainingFeatures_Sim, testingFeatures_Sim, trainingLabels_Sim, testingLabels_Sim = sklearn.model_selection.train_test_split(standardizedFeatures_Sim, allLabels_Sim, test_size=0.3, stratify=allLabels_Sim, shuffle=True)
     
-    numSimulatedData = 100
+    numSimulatedData = 1000
     # Add simulated data back to training
     trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
     trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)
     # Add simulated data back to testing
-    trainingLabels = np.concatenate((trainingLabels, testingLabels_Sim[0:numSimulatedData]), axis=0)
-    trainingFeatures = np.concatenate((trainingFeatures, testingFeatures_Sim[0:numSimulatedData]), axis=0)
+    # testingLabels = np.concatenate((testingLabels, testingLabels_Sim[0:numSimulatedData]), axis=0)
+    # testingFeatures = np.concatenate((testingFeatures, testingFeatures_Sim[0:numSimulatedData]), axis=0)
     
     # ---------------------------------------------------------------------- #
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "RF"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
+    modelType = "KNN"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR
     supportVectorKernel = "poly"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results
@@ -108,6 +108,8 @@ if __name__ == "__main__":
     print("Final F2 Score:", f2_Score_All)
     print("")
     
+    
+    
     numFeaturesCombineList = np.arange(1, len(featureNames)+1)
     # Fit model to all feature combinations
     for numFeaturesCombine in numFeaturesCombineList:
@@ -117,16 +119,27 @@ if __name__ == "__main__":
     
     
     
+    print(modelType)
+    sys.exit()
     
+    
+    
+    trainingFeatures, trainingLabels = standardizedFeatures_Lab, allLabels_Lab
+    numSimulatedData = 1000
+    # Add simulated data back to training
+    trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
+    trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)
     
     
     
     bestFeatures = [
-        ('RF', 'direction_std duration e2e_distance hjorthRatio hjorthRatio2 hjorthRatio3 stddev_step_speed track_length'),
-        ('ADA', 'duration e2e_distance hjorthRatio hjorthRatio3 mean_step_speed stddev_step_speed track_length'),
-        ('KNN', 'direction_std e2e_distance hjorthRatio hjorthRatio2 hjorthRatio3 stddev_step_speed'),
+        ('RF', 'direction_std duration e2e_distance mean_step_speed stddev_step_speed track_length'),
+        ('ADA', 'direction_std duration mean_step_speed stddev_step_speed'),
+        ('KNN', 'direction_kurtosis direction_skew direction_std duration e2e_distance stddev_step_speed track_length'),
     ]
     
+    
+
     
     
     standardizedUnlabeledFeatures = standardizeX_Class.standardize(unlabeledFeatures)

@@ -82,7 +82,7 @@ if __name__ == "__main__":
     # -------------------------- Machine Learning -------------------------- #
 
     # Pick the Machine Learning Module to Use
-    modelType = "ADA"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR, XGB
+    modelType = "XGB"  # Machine Learning Options: NN, RF, LR, KNN, SVM, RG, EN, SVR, XGB
     supportVectorKernel = "poly"  # linear, poly, rbf (ONLY applies if modelType is SVM or SVR)
     modelPath = "./Helper Files/Machine Learning/Models/predictionModel_NN1.pkl" # Path to Model (Creates New if it Doesn't Exist)
     # Choos the Folder to Save ML Results

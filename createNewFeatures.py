@@ -56,4 +56,4 @@ if __name__ == "__main__":
         
     # Compile and save the final features
     featureExtractionFunctions.compileFeatures(rawTrainingData, 'train')
-    featureExtractionFunctions.compileFeatures(rawUnlabeledData, 'test')
+    # featureExtractionFunctions.compileFeatures(rawUnlabeledData, 'test')

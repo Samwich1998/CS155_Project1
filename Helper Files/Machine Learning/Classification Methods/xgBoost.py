@@ -59,7 +59,7 @@ class xgBoost:
         
     def trainModel(self, Training_Data, Training_Labels, Testing_Data, Testing_Labels):  
         # Train the Model
-        self.model.fit(Training_Data, Training_Labels) #, eval_set=[(Testing_Data, Testing_Labels)])
+        self.model.fit(Training_Data, Training_Labels, verbose = False) #eval_set=[(Training_Data, Training_Labels)], )
         modelScore = self.scoreModel(Testing_Data, Testing_Labels)
         return modelScore
     

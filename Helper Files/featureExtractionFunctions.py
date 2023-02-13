@@ -20,6 +20,8 @@ import sklearn
 import csv
 import numpy as np
 
+from sklearn.linear_model import LinearRegression
+
 # -------------------------------------------------------------------------- #
 # ---------------------------- Compile Features ---------------------------- #
 
@@ -533,8 +535,72 @@ class featureExtractionProtocols:
         autocorr = np.corrcoef(dL, disp_with_lag)[0, 1]
         
         return autocorr
+    
+    def energy_change(self, coords):
+        t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+        velocity = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / (np.diff(t) + 1e-10)
+        energy = velocity**2
+        return max(energy) - min(energy)
+    
+    # def max_work(self, coords):
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    #     dist = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
+    #     velocity = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / (np.diff(t) + 1e-10)
+    #     acceleration = np.diff(velocity) / (np.diff(t[:-1]) + 1e-10)
+    #     work = np.multiply(dist[:-1], acceleration)
+    #     return max(work)
         
+    # def max_power(self, coords):
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+    #     dist = np.sqrt(np.diff(x)**2 + np.diff(y)**2)
+    #     velocity = np.sqrt(np.diff(x)**2 + np.diff(y)**2) / (np.diff(t) + 1e-10)
+    #     acceleration = np.diff(velocity) / np.diff(t[:-1])
+    #     power = np.multiply(dist[:-1], acceleration) / (np.diff(t[:-1]) + 1e-10)
+    #     return max(power)
         
+    def pearson_corr_squared(self, coords):
+        result = np.corrcoef(coords[:,1], coords[:,2])[0][1]**2
+        return 0 if np.isnan(result) else result
+        
+    def ssr(self, coords):
+        reg = LinearRegression().fit(coords[:,1].reshape(-1, 1), coords[:,2].reshape(-1, 1))
+        return np.sum((coords[:,2].reshape(-1, 1)-reg.predict(coords[:,1].reshape(-1, 1)))**2)
+    
+    def r_squared(self, coords):
+        reg = LinearRegression().fit(coords[:,1].reshape(-1, 1), coords[:,2].reshape(-1, 1))
+        return reg.score(coords[:,1].reshape(-1, 1), coords[:,2].reshape(-1, 1))
+        
+    def direction_var(self, coords):
+        return self.direction_std(coords)**2
+        
+    def comb1(self, coords):
+        return self.direction_std(coords)**2 * self.r_squared(coords)      
+    
+    def yamartino(self, coords):
+        _, x, y = coords[:, 0], coords[:, 1], coords[:, 2]  
+        thetas = np.arctan(np.divide(np.diff(y), np.diff(x)+1e-100))
+        sa = np.mean(np.sin(thetas))
+        ca = np.mean(np.cos(thetas))
+        eps = np.sqrt(1-(sa**2+ca**2))
+        return np.arcsin(eps)*(1+(2/np.sqrt(3)-1)*(eps**3))
+        
+    # def yamartino_time(self, coords):
+    #     t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]  
+    #     thetas = np.arctan(np.divide(np.diff(y), np.diff(x)+1e-100))
+    #     sa = np.dot(np.sin(thetas), np.diff(t)/(t[:-1]-t[0]+1e-10))
+    #     ca = np.dot(np.cos(thetas), np.diff(t)/(t[:-1]-t[0]+1e-10))
+    #     eps = np.sqrt(abs(1-(sa**2+ca**2)))
+    #     return np.arcsin(eps)*(1+(2/np.sqrt(3)-1)*(eps**3))
+    
+    def partial_corr(self, coords):
+        t, x, y = coords[:, 0], coords[:, 1], coords[:, 2]
+        reg_x = LinearRegression().fit(t.reshape(-1, 1), x.reshape(-1, 1))
+        reg_y = LinearRegression().fit(t.reshape(-1, 1), y.reshape(-1, 1))
+        resid_x = reg_x.predict(t.reshape(-1, 1))
+        resid_y = reg_y.predict(t.reshape(-1, 1))
+        result = np.sum(np.multiply(resid_x-np.mean(resid_x),resid_y-np.mean(resid_y))) / np.sqrt(np.sum(np.square(resid_x-np.mean(resid_x)))*np.sum(np.square(resid_y-np.mean(resid_y))))
+        return 0 if np.isnan(result) else result
+            
 
     
         

@@ -34,8 +34,8 @@ if __name__ == "__main__":
     # -------------------------- Extract the data -------------------------- #
     
     # Specify input files
-    trainingFile = "./Data/Input Data/train_features_20230212_123802.csv"
-    unlabeledFile = "./Data/Input Data/test_features_20230212_124044.csv"
+    trainingFile = "./Data/Input Data/train_features_20230213_140522.csv"
+    unlabeledFile = "./Data/Input Data/test_features_20230213_140506.csv"
     # Load in the training/testing information
     allFeatures, allLabels, featureNames, allFilenames = excelProcessing.processFiles().extractFeatures(trainingFile)
     unlabeledFeatures, _, unlabeledFeatureNames, unlabeledFilenames = excelProcessing.processFiles().extractFeatures(unlabeledFile)
@@ -111,11 +111,12 @@ if __name__ == "__main__":
     
     
     numFeaturesCombineList = np.arange(1, len(featureNames)+1)
+    numFeaturesCombineList = [len(featureNames)]
     # Fit model to all feature combinations
     for numFeaturesCombine in numFeaturesCombineList:
         print("Using ", numFeaturesCombine)
         performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)
-        modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, featureNames, numFeaturesCombine, saveData = False, saveExcelName = "Feature Combinations.xlsx", printUpdateAfterTrial = 50000, scaleLabels = False)
+        modelScores, modelSTDs, featureNames_Combinations = performMachineLearning.analyzeFeatureCombinations(trainingFeatures, trainingLabels, testingFeatures, testingLabels, featureNames, numFeaturesCombine, saveData = False, saveExcelName = "Feature Combinations.xlsx", printUpdateAfterTrial = 5000, scaleLabels = False)
     
     
     
@@ -132,11 +133,26 @@ if __name__ == "__main__":
     
     
     
+    selectNumFeatures = 20
+    from sklearn.feature_selection import SelectKBest, f_regression
+    importance_scores = performMachineLearning.predictionModel.model.feature_importances_
+    # Use SelectKBest to extract the top 20 uncorrelated features
+    selector = SelectKBest(f_regression, k=selectNumFeatures)
+    _ = selector.fit_transform(trainingFeatures, trainingLabels)
+    # Get the indices of the top 20 features
+    topIndices = selector.get_support(indices=True)
+    goodFeatures = featureNames[topIndices]
+    
+    from xgboost import plot_importance
+    plot_importance(performMachineLearning.predictionModel.model, max_num_features = len(featureNames)) # top 10 most important features
+    plt.show()
+
+    
     
     bestFeatures = [
         # ('RF', ' '.join(featureNames)),
         # ('ADA', ' '.join(featureNames)),
-        ('XGB', ' '.join(featureNames)),
+        ('XGB',  goodFeatures),
         # ('KNN', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
     ]
     
@@ -150,7 +166,7 @@ if __name__ == "__main__":
     predictedLabels_All = []
     for featureInfo in bestFeatures:
         modelType, modelFeatures = featureInfo
-        modelFeatures = modelFeatures.split(" ")
+        # modelFeatures = modelFeatures.split(" ")
         
         # Get the Machine Learning Module
         performMachineLearning = machineLearningMain.predictionModelHead(modelType, modelPath, numFeatures = len(featureNames), machineLearningClasses = [0, 1], saveDataFolder = saveDataFolder_ML, supportVectorKernel = supportVectorKernel)

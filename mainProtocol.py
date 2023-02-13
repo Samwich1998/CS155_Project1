@@ -125,7 +125,7 @@ if __name__ == "__main__":
     
     
     trainingFeatures, trainingLabels = standardizedFeatures_Lab, allLabels_Lab
-    numSimulatedData = 200
+    numSimulatedData = 1000
     # Add simulated data back to training
     trainingLabels = np.concatenate((trainingLabels, trainingLabels_Sim[0:numSimulatedData]), axis=0)
     trainingFeatures = np.concatenate((trainingFeatures, trainingFeatures_Sim[0:numSimulatedData]), axis=0)

@@ -134,8 +134,8 @@ if __name__ == "__main__":
     
     
     bestFeatures = [
-        ('RF', ' '.join(featureNames)),
-        ('ADA', ' '.join(featureNames)),
+        # ('RF', ' '.join(featureNames)),
+        # ('ADA', ' '.join(featureNames)),
         ('XGB', ' '.join(featureNames)),
         # ('KNN', 'direction_kurtosis direction_skew direction_std direction_x direction_y duration e2e_distance linearity mean_step_speed quadraticity stddev_step_speed track_length'),
     ]

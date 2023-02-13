@@ -87,7 +87,7 @@ class predictionModelHead:
         elif modelType == "ADA":
             predictionModel = adaBoost.adaBoost(modelPath = modelPath)
         elif modelType == "XGB":
-            predictionModel = adaBoost.adaBoost(modelPath = modelPath)
+            predictionModel = xgBoost.xgBoost(modelPath = modelPath)
         elif modelType == "LR":
             predictionModel = LR.logisticRegression(modelPath = modelPath)
         elif modelType == "RG":
